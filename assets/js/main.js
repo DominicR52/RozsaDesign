@@ -150,34 +150,24 @@
   onScroll();
 })();
 
-// ========== HERO CAROUSEL ==========
+// ========== HERO (full) CAROUSEL ==========
 (function(){
-  var slider=document.getElementById('heroSlider');
-  if(!slider) return;
-  var slides=[].slice.call(slider.querySelectorAll('.hero-slide'));
-  var dotsWrap=document.getElementById('heroDots');
-  var current=0;
-  var timer=null;
-  var INTERVAL=6500;
+  var wrap = document.getElementById('heroCarousel');
+  if(!wrap) return;
 
-  // set background from data-bg or fallback
-  slides.forEach(function(slide){
-    var bg=slide.getAttribute('data-bg');
-    if(bg){
-      slide.style.backgroundImage='url('+bg+')';
-    } else {
-      // fallback to your old SVG panel
-      slide.style.backgroundImage="url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
-    }
-  });
+  var slides = [].slice.call(wrap.querySelectorAll('.hero-slide'));
+  var dotsWrap = document.getElementById('heroCarouselDots');
+  var current = 0;
+  var timer = null;
+  var INTERVAL = 7000;
 
-  // dots
-  var dots=[];
-  slides.forEach(function(_,idx){
-    var d=document.createElement('button');
-    d.type='button';
-    d.className='hero-dot' + (idx===0 ? ' is-active' : '');
-    d.setAttribute('aria-label','Go to slide ' + (idx+1));
+  // build dots
+  var dots = [];
+  slides.forEach(function(_, idx){
+    var d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'hero-dot' + (idx === 0 ? ' is-active' : '');
+    d.setAttribute('aria-label', 'Go to hero slide ' + (idx+1));
     d.addEventListener('click', function(){
       goTo(idx, true);
     });
@@ -185,11 +175,24 @@
     dots.push(d);
   });
 
+  // set backgrounds from data-bg (right media)
+  slides.forEach(function(slide){
+    var plate = slide.querySelector('.hero-media-plate');
+    if(!plate) return;
+    var bg = plate.getAttribute('data-bg');
+    if(bg && bg.indexOf('.jpg') !== -1){
+      plate.style.backgroundImage = 'url('+bg+')';
+    } else {
+      // fallback to your existing SVG-look panel
+      plate.style.backgroundImage = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
+    }
+  });
+
   function goTo(idx, user){
     slides[current].classList.remove('is-active');
     dots[current].classList.remove('is-active');
 
-    current=idx;
+    current = idx;
     slides[current].classList.add('is-active');
     dots[current].classList.add('is-active');
 
@@ -199,23 +202,27 @@
   }
 
   function next(){
-    var n=(current+1) % slides.length;
+    var n = (current + 1) % slides.length;
     goTo(n, false);
   }
 
   function start(){
-    timer=setInterval(next, INTERVAL);
+    timer = setInterval(next, INTERVAL);
   }
+
   function stop(){
     if(timer) clearInterval(timer);
   }
+
   function restart(){
     stop();
     start();
   }
 
-  slider.addEventListener('mouseenter', stop);
-  slider.addEventListener('mouseleave', start);
+  // pause on hover (desktop)
+  wrap.addEventListener('mouseenter', stop);
+  wrap.addEventListener('mouseleave', start);
 
   start();
 })();
+
