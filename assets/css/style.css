@@ -458,6 +458,20 @@ main { position: relative; }
 }
 .hero-dot.is-active { background: #111; transform: scale(1.1); }
 
+/* --- Keep left column vertically consistent across slides --- */
+.hero-copy{
+  display:grid;
+  grid-template-rows:auto auto 1fr auto; /* tag, h1, body grows, CTA pinned */
+  row-gap:.6rem;
+  min-height:clamp(300px, 34vw, 420px); /* same visual “stage” per slide */
+}
+.hero-text{ display:grid; gap:.6rem; }
+
+/* optional: nudge typography rhythm a bit tighter on desktop */
+@media (min-width:960px){
+  .hero-shell h1{ margin-bottom:.6rem; }
+  .hero-copy{ row-gap:.5rem; }
+}
 
 
 /* ===================== SERVICES ===================== */
