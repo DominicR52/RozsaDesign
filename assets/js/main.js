@@ -150,7 +150,7 @@
   onScroll();
 })();
 
-// ========== HERO (full) CAROUSEL ==========
+// ========== HERO (full) CAROUSEL — stable height, preloaded ==========
 (function(){
   var wrap = document.getElementById('heroCarousel');
   if(!wrap) return;
@@ -161,44 +161,89 @@
   var timer = null;
   var INTERVAL = 7000;
 
-  // build dots
-  var dots = [];
-  slides.forEach(function(_, idx){
-    var d = document.createElement('button');
-    d.type = 'button';
-    d.className = 'hero-dot' + (idx === 0 ? ' is-active' : '');
-    d.setAttribute('aria-label', 'Go to hero slide ' + (idx+1));
-    d.addEventListener('click', function(){
-      goTo(idx, true);
+  // preload data-bg images so first transition is clean
+  function preloadBackgrounds(){
+    slides.forEach(function(slide){
+      var plate = slide.querySelector('.hero-media-plate');
+      if(!plate) return;
+      var bg = plate.getAttribute('data-bg');
+      if(!bg || !/\.(jpg|jpeg|png|webp|avif)$/i.test(bg)) return;
+      var img = new Image();
+      img.src = bg;
     });
-    dotsWrap.appendChild(d);
-    dots.push(d);
-  });
+  }
 
-  // set backgrounds from data-bg (right media)
-  slides.forEach(function(slide){
-    var plate = slide.querySelector('.hero-media-plate');
-    if(!plate) return;
-    var bg = plate.getAttribute('data-bg');
-    if(bg && bg.indexOf('.jpg') !== -1){
-      plate.style.backgroundImage = 'url('+bg+')';
-    } else {
-      // fallback to your existing SVG-look panel
-      plate.style.backgroundImage = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
+  // set backgrounds (or fallback SVG)
+  function applyBackgrounds(){
+    slides.forEach(function(slide){
+      var plate = slide.querySelector('.hero-media-plate');
+      if(!plate) return;
+      var bg = plate.getAttribute('data-bg');
+      if(bg && /\.(jpg|jpeg|png|webp|avif)$/i.test(bg)){
+        plate.style.backgroundImage = 'url("'+bg+'")';
+      } else {
+        plate.style.backgroundImage =
+          "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
+      }
+    });
+  }
+
+  // lock the carousel height to tallest slide (prevents jump)
+  function lockHeroHeight(){
+    // temporarily make all slides visible to measure their natural height
+    slides.forEach(function(s){ s.style.position='absolute'; s.style.opacity=1; s.style.pointerEvents='none'; });
+    // force reflow
+    void wrap.offsetHeight;
+
+    var maxH = 0;
+    slides.forEach(function(s){
+      // measure the grid box height (slides fill the wrapper)
+      var h = s.getBoundingClientRect().height;
+      if(h > maxH) maxH = h;
+    });
+
+    // restore visibility state
+    slides.forEach(function(s, i){
+      s.style.opacity = (i === current ? 1 : 0);
+      s.style.pointerEvents = (i === current ? 'auto' : 'none');
+    });
+
+    // lock height in px to avoid CLS
+    if(maxH > 0){
+      wrap.style.height = Math.ceil(maxH) + 'px';
     }
-  });
+  }
+
+  // dots
+  var dots = [];
+  function buildDots(){
+    dotsWrap.innerHTML = '';
+    dots = [];
+    slides.forEach(function(_, idx){
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'hero-dot' + (idx === 0 ? ' is-active' : '');
+      d.setAttribute('aria-label', 'Go to hero slide ' + (idx+1));
+      d.addEventListener('click', function(){ goTo(idx, true); });
+      dotsWrap.appendChild(d);
+      dots.push(d);
+    });
+  }
+
+  function setActive(iActive){
+    slides.forEach(function(s, i){
+      s.classList.toggle('is-active', i === iActive);
+    });
+    dots.forEach(function(d, i){
+      d.classList.toggle('is-active', i === iActive);
+    });
+  }
 
   function goTo(idx, user){
-    slides[current].classList.remove('is-active');
-    dots[current].classList.remove('is-active');
-
     current = idx;
-    slides[current].classList.add('is-active');
-    dots[current].classList.add('is-active');
-
-    if(user){
-      restart();
-    }
+    setActive(current);
+    lockHeroHeight();     // ensure height fits the new slide
+    if(user) restart();
   }
 
   function next(){
@@ -206,23 +251,34 @@
     goTo(n, false);
   }
 
+  var ro; // ResizeObserver to re-lock on content changes
   function start(){
     timer = setInterval(next, INTERVAL);
+    // watch size changes (fonts load, viewport change, etc.)
+    if('ResizeObserver' in window && !ro){
+      ro = new ResizeObserver(function(){ lockHeroHeight(); });
+      ro.observe(wrap);
+    }
+    // also lock once fonts/images are likely settled
+    setTimeout(lockHeroHeight, 100);
+    setTimeout(lockHeroHeight, 400);
   }
-
-  function stop(){
-    if(timer) clearInterval(timer);
-  }
-
-  function restart(){
-    stop();
-    start();
-  }
+  function stop(){ if(timer) clearInterval(timer); }
+  function restart(){ stop(); start(); }
 
   // pause on hover (desktop)
   wrap.addEventListener('mouseenter', stop);
   wrap.addEventListener('mouseleave', start);
+  window.addEventListener('resize', lockHeroHeight);
+  window.addEventListener('orientationchange', function(){ setTimeout(lockHeroHeight, 200); });
 
+  // init
+  preloadBackgrounds();
+  applyBackgrounds();
+  buildDots();
+  setActive(0);
+  lockHeroHeight();
   start();
 })();
+
 
