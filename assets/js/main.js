@@ -150,7 +150,7 @@
   onScroll();
 })();
 
-// ========== HERO (full) CAROUSEL — simple crossfade, no height lock ==========
+// ========== HERO (full) CAROUSEL — safe mode (no fades) ==========
 (function(){
   var wrap = document.getElementById('heroCarousel');
   if(!wrap) return;
@@ -161,23 +161,23 @@
   var timer = null;
   var INTERVAL = 7000;
 
-  // set backgrounds (or fallback SVG)
+  // set backgrounds (or fallback SVG) and preload
   slides.forEach(function(slide){
     var plate = slide.querySelector('.hero-media-plate');
     if(!plate) return;
     var bg = plate.getAttribute('data-bg');
     if(bg && /\.(jpg|jpeg|png|webp|avif)$/i.test(bg)){
-      // preload
       var img = new Image(); img.src = bg;
       plate.style.backgroundImage = 'url("'+bg+'")';
     } else {
       plate.style.backgroundImage =
-        "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
+        "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
     }
   });
 
   // dots
   var dots = [];
+  dotsWrap.innerHTML = '';
   slides.forEach(function(_, idx){
     var d = document.createElement('button');
     d.type = 'button';
@@ -188,17 +188,18 @@
     dots.push(d);
   });
 
-  function setActive(iActive){
-    slides.forEach(function(s, i){
-      s.classList.toggle('is-active', i === iActive);
+  function setActive(i){
+    slides.forEach(function(s, k){
+      if(k === i){ s.classList.add('is-active'); }
+      else      { s.classList.remove('is-active'); }
     });
-    dots.forEach(function(d, i){
-      d.classList.toggle('is-active', i === iActive);
+    dots.forEach(function(d, k){
+      d.classList.toggle('is-active', k === i);
     });
   }
 
-  function goTo(idx, user){
-    current = idx;
+  function goTo(i, user){
+    current = i;
     setActive(current);
     if(user) restart();
   }
@@ -208,11 +209,13 @@
   function stop(){ if(timer) clearInterval(timer); }
   function restart(){ stop(); start(); }
 
+  // optional: pause on hover
   wrap.addEventListener('mouseenter', stop);
   wrap.addEventListener('mouseleave', start);
 
   setActive(0);
   start();
 })();
+
 
 
