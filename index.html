@@ -61,9 +61,12 @@
 <!-- ===================== MAIN ===================== -->
 <main>
 
-  <!-- HERO CAROUSEL -->
-  <section class="hero-shell reveal" id="top">
-    <div class="hero-carousel" id="heroCarousel">
+  <!-- HERO CAROUSEL (FULL PAGE) -->
+  <!-- Add `is-fullpage` for viewport-fill. -->
+  <section class="hero-shell reveal is-fullpage" id="top">
+    <!-- Choose animation mode: mode-fade (default) or mode-slide -->
+    <div class="hero-carousel mode-fade" id="heroCarousel">
+
       <!-- SLIDE 1 -->
       <article class="hero-slide is-active">
         <div class="hero-grid">
@@ -169,11 +172,13 @@
           </div>
         </div>
       </article>
+
     </div>
 
     <!-- dots -->
     <div class="hero-dots-bar" id="heroCarouselDots" aria-label="Hero slides"></div>
   </section>
+
 
 
 
@@ -502,5 +507,6 @@
 <script src="assets/js/main.js"></script>
 </body>
 </html>
+
 
 
