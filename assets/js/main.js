@@ -150,18 +150,38 @@
   onScroll();
 })();
 
-// ========== HERO (full) CAROUSEL — safe mode (no fades) ==========
+// ========== HERO (full-page) CAROUSEL — fade (default) or slide ==========
 (function(){
-  var wrap = document.getElementById('heroCarousel');
-  if(!wrap) return;
+  var carousel = document.getElementById('heroCarousel');
+  if(!carousel) return;
 
-  var slides = [].slice.call(wrap.querySelectorAll('.hero-slide'));
+  var isFade = carousel.classList.contains('mode-fade');
+  var isSlide = carousel.classList.contains('mode-slide');
+
+  // If slide mode, ensure a .hero-track wrapper exists
+  var track = null;
+  if(isSlide){
+    track = carousel.querySelector('.hero-track');
+    if(!track){
+      track = document.createElement('div');
+      track.className = 'hero-track';
+      // move all slides into track
+      var existing = [].slice.call(carousel.children);
+      existing.forEach(function(node){
+        if(node.classList && node.classList.contains('hero-slide')){
+          track.appendChild(node);
+        }
+      });
+      carousel.appendChild(track);
+    }
+  }
+
+  var slides = [].slice.call(carousel.querySelectorAll('.hero-slide'));
   var dotsWrap = document.getElementById('heroCarouselDots');
-  var current = 0;
-  var timer = null;
-  var INTERVAL = 7000;
+  var current = Math.max(0, slides.findIndex(s => s.classList.contains('is-active')));
+  if(current === -1) current = 0;
 
-  // set backgrounds (or fallback SVG) and preload
+  // preload backgrounds
   slides.forEach(function(slide){
     var plate = slide.querySelector('.hero-media-plate');
     if(!plate) return;
@@ -171,7 +191,7 @@
       plate.style.backgroundImage = 'url("'+bg+'")';
     } else {
       plate.style.backgroundImage =
-        "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
+        "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"420\" viewBox=\"0 0 1400 420\"><defs><linearGradient id=\"hg\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23232323\"/><stop offset=\"100%\" stop-color=\"%233d3d3d\"/></linearGradient></defs><rect width=\"1400\" height=\"420\" fill=\"url(%23hg)\"/><rect x=\"90\" y=\"80\" width=\"540\" height=\"250\" rx=\"16\" fill=\"none\" stroke=\"%23ffffff33\" stroke-width=\"3\"/><line x1=\"680\" y1=\"90\" x2=\"1230\" y2=\"90\" stroke=\"%23ffffff22\" stroke-width=\"4\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"130\" x2=\"1180\" y2=\"130\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"680\" y1=\"170\" x2=\"980\" y2=\"170\" stroke=\"%23ffffff18\" stroke-width=\"3\" stroke-linecap=\"round\"/><text x=\"110\" y=\"150\" fill=\"%23ffffff\" font-size=\"44\" font-family=\"sans-serif\" font-weight=\"700\">Concept → CAD → Manufacture</text><text x=\"110\" y=\"190\" fill=\"%23ffffffaa\" font-size=\"22\" font-family=\"sans-serif\">Rozsa Design</text></svg>')";
     }
   });
 
@@ -181,7 +201,7 @@
   slides.forEach(function(_, idx){
     var d = document.createElement('button');
     d.type = 'button';
-    d.className = 'hero-dot' + (idx === 0 ? ' is-active' : '');
+    d.className = 'hero-dot' + (idx === current ? ' is-active' : '');
     d.setAttribute('aria-label', 'Go to hero slide ' + (idx+1));
     d.addEventListener('click', function(){ goTo(idx, true); });
     dotsWrap.appendChild(d);
@@ -189,31 +209,43 @@
   });
 
   function setActive(i){
-    slides.forEach(function(s, k){
-      if(k === i){ s.classList.add('is-active'); }
-      else      { s.classList.remove('is-active'); }
-    });
+    if(isFade){
+      slides.forEach(function(s, k){
+        s.classList.toggle('is-active', k === i);
+      });
+    } else if(isSlide){
+      // slide track left/right
+      var x = -i * 100;
+      track.style.transform = 'translateX(' + x + '%)';
+      slides.forEach(function(s, k){
+        s.classList.toggle('is-active', k === i);
+      });
+    }
     dots.forEach(function(d, k){
       d.classList.toggle('is-active', k === i);
     });
   }
 
-  function goTo(i, user){
-    current = i;
+  function goTo(i, userTriggered){
+    current = (i + slides.length) % slides.length;
     setActive(current);
-    if(user) restart();
+    if(userTriggered) restart();
   }
-  function next(){ goTo((current + 1) % slides.length, false); }
 
+  function next(){ goTo(current + 1, false); }
+
+  var timer = null;
+  var INTERVAL = 7000;
   function start(){ timer = setInterval(next, INTERVAL); }
   function stop(){ if(timer) clearInterval(timer); }
   function restart(){ stop(); start(); }
 
-  // optional: pause on hover
-  wrap.addEventListener('mouseenter', stop);
-  wrap.addEventListener('mouseleave', start);
+  // pause on hover (desktop only heuristic)
+  carousel.addEventListener('mouseenter', stop);
+  carousel.addEventListener('mouseleave', start);
 
-  setActive(0);
+  // init
+  setActive(current);
   start();
 })();
 
