@@ -393,6 +393,70 @@ h2{
   .hero-media-sub{font-size:1.05rem;}
 }
 
+/* ==== HERO SAFE MODE (append at end of CSS) ==== */
+
+/* Stop reveal effects on the hero (they can cause layout thrash). */
+.hero-shell.reveal { opacity: 1 !important; transform: none !important; }
+
+/* Contain everything; never allow horizontal spill. */
+html, body { overflow-x: hidden; }
+main { position: relative; }
+.hero-shell { overflow: hidden; }
+.hero-carousel { position: relative; overflow: hidden; }
+
+/* Put slides back in normal flow. Only the active one is shown. */
+.hero-slide { 
+  position: static !important;
+  display: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+.hero-slide.is-active {
+  display: block !important;
+}
+
+/* Keep grid simple; let content set natural height. */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.2rem;
+  align-items: end;
+}
+@media (min-width: 960px) {
+  .hero-grid { grid-template-columns: 1.05fr .75fr; gap: 3.2rem; }
+}
+
+/* Media panel behaves like a normal block with a sensible minimum. */
+.hero-media { display: block; }
+.hero-media-plate {
+  position: relative;
+  border: 1px solid var(--line);
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  min-height: 240px;
+}
+@media (min-width: 960px) {
+  .hero-media-plate { aspect-ratio: 7 / 3; }
+}
+
+/* Dots are fine pinned to the section corner. */
+.hero-dots-bar {
+  position: absolute;
+  right: 1.35rem;
+  bottom: 1.35rem;
+  display: flex;
+  gap: .45rem;
+  z-index: 5;
+}
+.hero-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(255,255,255,.35);
+  border: 1px solid rgba(0,0,0,.35);
+}
+.hero-dot.is-active { background: #111; transform: scale(1.1); }
 
 
 
