@@ -339,6 +339,40 @@ h2{
   /* slides are in normal flow inside the track */
 }
 
+/* Sleek progress bar indicator */
+.hero-progress{
+  position:absolute;
+  left:1.35rem;
+  right:1.35rem;
+  bottom:1.35rem;
+  height:3px;
+  border-radius:2px;
+  background:rgba(255,255,255,.25);
+  overflow:hidden;
+  z-index:5;
+}
+.hero-progress-fill{
+  width:0%;
+  height:100%;
+  background:#111; /* dark ink (contrasts with light bg) */
+  transition:width var(--hero-interval,7s) linear;
+}
+
+/* optional tiny tick marks so you know how many slides there are */
+.hero-progress::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc((100% / var(--hero-count,3)) - 1px),
+      rgba(255,255,255,.35) calc((100% / var(--hero-count,3)) - 1px),
+      rgba(255,255,255,.35) calc(100% / var(--hero-count,3))
+    );
+  opacity:.5;
+  pointer-events:none;
+}
 
 
 /* ===================== SERVICES ===================== */
