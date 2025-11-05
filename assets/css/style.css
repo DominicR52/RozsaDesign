@@ -268,13 +268,14 @@ h2{
   border-bottom:1px solid var(--line);
 }
 
-/* The wrapper just stacks slides; natural height comes from the active slide */
+/* The wrapper stacks slides; natural height comes from the active slide */
 .hero-carousel{
   position:relative;
-  min-height:clamp(360px, 48vw, 560px); /* sensible floor so first paint looks good */
+  min-height:clamp(360px, 48vw, 560px);
+  overflow:hidden;           /* prevents any visual spill during fades */
 }
 
-/* Inactive slides are absolutely stacked and faded out; active slide is relative so it sets height */
+/* Inactive slides are absolute & transparent; active slide is relative so it sets height */
 .hero-slide{
   position:absolute;
   inset:0;
@@ -284,7 +285,7 @@ h2{
   will-change:opacity;
 }
 .hero-slide.is-active{
-  position:relative;     /* <-- contributes natural height */
+  position:relative;     /* contributes natural height */
   opacity:1;
   pointer-events:auto;
   z-index:1;
@@ -301,7 +302,8 @@ h2{
   .hero-grid{
     grid-template-columns:1.05fr .75fr;
     gap:3.2rem;
-}
+  }
+} /* <-- THIS BRACE WAS MISSING BEFORE */
 
 .hero-tag{
   font-size:.66rem;
@@ -321,7 +323,7 @@ h2{
 .hero-shell h1 strong{font-weight:600}
 .hero-shell p{font-size:.98rem;max-width:56ch;margin:1rem 0 0.3rem}
 
-/* Media keeps itself tidy without forcing grid height */
+/* Media stays tidy without forcing grid height */
 .hero-media{
   display:flex;
 }
@@ -334,10 +336,10 @@ h2{
   background-size:cover;
   background-position:center;
   flex:1 1 auto;
-  min-height:240px;          /* guard on small copy */
+  min-height:240px;         /* guard when copy is short */
 }
 @media(min-width:960px){
-  .hero-media-plate{ aspect-ratio: 7 / 3; }  /* consistent look on desktop */
+  .hero-media-plate{ aspect-ratio: 7 / 3; }  /* consistent desktop height */
 }
 
 .hero-media-plate::before{
@@ -363,7 +365,7 @@ h2{
   font-size:1.25rem;
 }
 
-/* Dots: pinned to the section so they never jump */
+/* Dots pinned to the section so they never jump */
 .hero-dots-bar{
   position:absolute;
   right:1.35rem;
