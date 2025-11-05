@@ -257,7 +257,7 @@ h2{
   margin-bottom:2rem;
 }
 
-/* ===================== HERO (full-carousel smoothed) ===================== */
+/* ===================== HERO (full-carousel — stable, no JS height lock) ===================== */
 .hero-shell{
   background:var(--bg-soft);
   padding-top:clamp(3.8rem, 6.3vw, 5.4rem);
@@ -268,14 +268,13 @@ h2{
   border-bottom:1px solid var(--line);
 }
 
+/* The wrapper just stacks slides; natural height comes from the active slide */
 .hero-carousel{
   position:relative;
-  /* lock a reasonable minimum so we never collapse on first paint */
-  min-height:clamp(360px, 48vw, 540px);
-  /* JS will set an explicit height in px to avoid any jump */
+  min-height:clamp(360px, 48vw, 560px); /* sensible floor so first paint looks good */
 }
 
-/* stack slides perfectly so crossfade never shifts layout */
+/* Inactive slides are absolutely stacked and faded out; active slide is relative so it sets height */
 .hero-slide{
   position:absolute;
   inset:0;
@@ -285,26 +284,23 @@ h2{
   will-change:opacity;
 }
 .hero-slide.is-active{
+  position:relative;     /* <-- contributes natural height */
   opacity:1;
   pointer-events:auto;
-  position:absolute; /* remains stacked to avoid reflow */
-  z-index:2;
+  z-index:1;
 }
 
-/* equal-height two-column grid */
+/* Two-column grid, no height:100% so the slide can size itself naturally */
 .hero-grid{
   display:grid;
   grid-template-columns:1fr;
   gap:2.2rem;
-  align-items:stretch;        /* <-- equal column height */
-  height:100%;                /* <-- fill the locked carousel height */
-  padding-bottom:.2rem;       /* tiny buffer so shadows never clip */
+  align-items:end;
 }
 @media(min-width:960px){
   .hero-grid{
     grid-template-columns:1.05fr .75fr;
     gap:3.2rem;
-  }
 }
 
 .hero-tag{
@@ -325,9 +321,8 @@ h2{
 .hero-shell h1 strong{font-weight:600}
 .hero-shell p{font-size:.98rem;max-width:56ch;margin:1rem 0 0.3rem}
 
-/* media column always fills height; fixed aspect on desktop */
+/* Media keeps itself tidy without forcing grid height */
 .hero-media{
-  align-self:stretch;
   display:flex;
 }
 .hero-media-plate{
@@ -339,17 +334,18 @@ h2{
   background-size:cover;
   background-position:center;
   flex:1 1 auto;
-  height:100%;                 /* fill the grid row */
+  min-height:240px;          /* guard on small copy */
+}
+@media(min-width:960px){
+  .hero-media-plate{ aspect-ratio: 7 / 3; }  /* consistent look on desktop */
 }
 
-/* subtle vignette */
 .hero-media-plate::before{
   content:"";
   position:absolute;
   inset:0;
   background:radial-gradient(circle at 10% 10%, rgba(0,0,0,0.35), rgba(0,0,0,0.85));
 }
-
 .hero-media-overlay{
   position:absolute;
   left:1rem; right:1rem; bottom:1rem;
@@ -367,21 +363,7 @@ h2{
   font-size:1.25rem;
 }
 
-/* desktop aspect (keeps visual height consistent regardless of copy) */
-@media(min-width:960px){
-  .hero-media-plate{
-    aspect-ratio: 7 / 3;       /* fixed pleasant wide look */
-  }
-}
-
-/* mobile/tablet: no aspect lock; rely on min-height for overall hero */
-@media(max-width:959px){
-  .hero-carousel{
-    min-height:clamp(420px, 80vh, 680px);
-  }
-}
-
-/* dots: pinned to the hero shell, not to a slide, so they don't move */
+/* Dots: pinned to the section so they never jump */
 .hero-dots-bar{
   position:absolute;
   right:1.35rem;
@@ -408,6 +390,7 @@ h2{
   .hero-shell{padding-top:4.5rem}
   .hero-media-sub{font-size:1.05rem;}
 }
+
 
 
 
