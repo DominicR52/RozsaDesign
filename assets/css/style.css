@@ -703,3 +703,8 @@ button.secondary{background:transparent;color:#000}
   .hero{padding-top:4.5rem}
   .suite-graphic svg{max-width:180px;}
 }
+
+
+/* Ensure the hero is visible even if reveal JS hasn’t run yet */
+.hero-shell.reveal{opacity:1!important;transform:none!important;}
+
