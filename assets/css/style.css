@@ -257,7 +257,7 @@ h2{
   margin-bottom:2rem;
 }
 
-/* ===================== HERO (full-carousel) ===================== */
+/* ===================== HERO (full-carousel smoothed) ===================== */
 .hero-shell{
   background:var(--bg-soft);
   padding-top:clamp(3.8rem, 6.3vw, 5.4rem);
@@ -267,35 +267,46 @@ h2{
   position:relative;
   border-bottom:1px solid var(--line);
 }
+
 .hero-carousel{
   position:relative;
-  min-height:280px;
+  /* lock a reasonable minimum so we never collapse on first paint */
+  min-height:clamp(360px, 48vw, 540px);
+  /* JS will set an explicit height in px to avoid any jump */
 }
+
+/* stack slides perfectly so crossfade never shifts layout */
 .hero-slide{
   position:absolute;
   inset:0;
   opacity:0;
   pointer-events:none;
-  transition:opacity .5s ease;
+  transition:opacity .6s ease;
+  will-change:opacity;
 }
 .hero-slide.is-active{
   opacity:1;
   pointer-events:auto;
-  position:relative;
+  position:absolute; /* remains stacked to avoid reflow */
   z-index:2;
 }
+
+/* equal-height two-column grid */
 .hero-grid{
   display:grid;
   grid-template-columns:1fr;
-  gap:2.7rem;
-  align-items:end;
+  gap:2.2rem;
+  align-items:stretch;        /* <-- equal column height */
+  height:100%;                /* <-- fill the locked carousel height */
+  padding-bottom:.2rem;       /* tiny buffer so shadows never clip */
 }
 @media(min-width:960px){
   .hero-grid{
     grid-template-columns:1.05fr .75fr;
-    gap:3.6rem;
+    gap:3.2rem;
   }
 }
+
 .hero-tag{
   font-size:.66rem;
   letter-spacing:.24em;
@@ -314,31 +325,34 @@ h2{
 .hero-shell h1 strong{font-weight:600}
 .hero-shell p{font-size:.98rem;max-width:56ch;margin:1rem 0 0.3rem}
 
+/* media column always fills height; fixed aspect on desktop */
 .hero-media{
-  min-height:240px;
-  border-radius:6px;
+  align-self:stretch;
+  display:flex;
 }
 .hero-media-plate{
   border:1px solid var(--line);
   background:#000;
-  min-height:240px;
   border-radius:6px;
   overflow:hidden;
   position:relative;
   background-size:cover;
   background-position:center;
+  flex:1 1 auto;
+  height:100%;                 /* fill the grid row */
 }
+
+/* subtle vignette */
 .hero-media-plate::before{
   content:"";
   position:absolute;
   inset:0;
   background:radial-gradient(circle at 10% 10%, rgba(0,0,0,0.35), rgba(0,0,0,0.85));
 }
+
 .hero-media-overlay{
   position:absolute;
-  left:1rem;
-  bottom:1rem;
-  right:1rem;
+  left:1rem; right:1rem; bottom:1rem;
   color:#fff;
 }
 .hero-media-label{
@@ -353,22 +367,35 @@ h2{
   font-size:1.25rem;
 }
 
-/* dots for hero */
+/* desktop aspect (keeps visual height consistent regardless of copy) */
+@media(min-width:960px){
+  .hero-media-plate{
+    aspect-ratio: 7 / 3;       /* fixed pleasant wide look */
+  }
+}
+
+/* mobile/tablet: no aspect lock; rely on min-height for overall hero */
+@media(max-width:959px){
+  .hero-carousel{
+    min-height:clamp(420px, 80vh, 680px);
+  }
+}
+
+/* dots: pinned to the hero shell, not to a slide, so they don't move */
 .hero-dots-bar{
   position:absolute;
   right:1.35rem;
   bottom:1.35rem;
   display:flex;
   gap:.45rem;
+  z-index:5;
 }
 .hero-dot{
   width:9px;
   height:9px;
   border-radius:50%;
-  background:rgba(0,0,0,.08);
-  border:1px solid rgba(0,0,0,.35);
-  backdrop-filter:blur(6px);
   background:rgba(255,255,255,.35);
+  border:1px solid rgba(0,0,0,.35);
   cursor:pointer;
   transition:transform .2s ease, background .2s ease;
 }
@@ -377,11 +404,11 @@ h2{
   transform:scale(1.1);
 }
 
-/* keep old mobile stuff */
 @media(max-width:560px){
   .hero-shell{padding-top:4.5rem}
   .hero-media-sub{font-size:1.05rem;}
 }
+
 
 
 /* ===================== SERVICES ===================== */
